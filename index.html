@@ -357,6 +357,11 @@
       background: var(--navy-deep);
     }
 
+    .quiz-button:disabled {
+      background: #aebbbd;
+      cursor: not-allowed;
+    }
+
     .quiz-button.secondary {
       border: 1px solid #d5e2da;
       background: var(--paper);
@@ -878,7 +883,7 @@
           <div class="submission-row">
             <div class="total-result" id="total-result" role="status" aria-live="polite">Đã trả lời 0 / 30 câu · Đúng: —</div>
             <div class="submission-buttons">
-              <button class="quiz-button" id="submit-all" type="button">Nộp bài</button>
+              <button class="quiz-button" id="submit-all" type="button" disabled>Nộp bài (0/30)</button>
               <button class="quiz-button secondary" id="reset-all" type="button">Làm lại</button>
             </div>
           </div>
@@ -1029,6 +1034,7 @@
     const totalProgressBar = document.querySelector("#total-progress-bar");
     const totalProgressValue = document.querySelector("#total-progress-value");
     const totalResult = document.querySelector("#total-result");
+    const submitAllButton = document.querySelector("#submit-all");
     let submittedScore = null;
 
     function shuffle(items) {
@@ -1226,6 +1232,8 @@
       const answeredTotal = answeredQuestions + completedDrills;
       totalProgressBar.setAttribute("aria-valuenow", String(answeredTotal));
       totalProgressValue.style.width = `${(answeredTotal / 30) * 100}%`;
+      submitAllButton.disabled = answeredTotal !== 30 || submittedScore !== null;
+      submitAllButton.textContent = `Nộp bài (${answeredTotal}/30)`;
       if (submittedScore === null) {
         totalResult.textContent = `Đã trả lời ${answeredTotal} / 30 câu · Đúng: —`;
       } else {
@@ -1330,7 +1338,10 @@
 
     questionList.addEventListener("change", updateProgress);
 
-    document.querySelector("#submit-all").addEventListener("click", () => {
+    submitAllButton.addEventListener("click", () => {
+      if (submitAllButton.disabled) {
+        return;
+      }
       const answeredCount = questions.filter((_, index) =>
         form.querySelector(`input[name="question-${index}"]:checked`)
       ).length;
