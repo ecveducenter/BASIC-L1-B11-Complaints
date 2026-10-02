@@ -881,7 +881,7 @@
             <div class="progress-value" id="total-progress-value"></div>
           </div>
           <div class="submission-row">
-            <div class="total-result" id="total-result" role="status" aria-live="polite">Đã trả lời 0 / 30 câu · Đúng: —</div>
+            <div class="total-result" id="total-result" role="status" aria-live="polite">Đã trả lời 0/30 câu · Số câu đúng: —</div>
             <div class="submission-buttons">
               <button class="quiz-button" id="submit-all" type="button" disabled>Nộp bài (0/30)</button>
               <button class="quiz-button secondary" id="reset-all" type="button">Làm lại</button>
@@ -894,7 +894,7 @@
     <footer>LESSON 11 · BASIC ENGLISH</footer>
   </main>
   <script>
-    const questions = [
+    let questions = [
       {
         english: "I just want to get this mess straightened out",
         vietnamese: "Tôi chỉ muốn được giải quyết rắc rối này thôi"
@@ -942,7 +942,7 @@
       { english: "I want to make a complaint", vietnamese: "Tôi muốn khiếu nại" }
     ];
 
-    const drills = [
+    let drills = [
       {
         sentence: "My last phone bill was for $1,493.",
         translation: "Hóa đơn điện thoại kỳ rồi của tôi là 1.493 đô la.",
@@ -1235,9 +1235,9 @@
       submitAllButton.disabled = answeredTotal !== 30 || submittedScore !== null;
       submitAllButton.textContent = `Nộp bài (${answeredTotal}/30)`;
       if (submittedScore === null) {
-        totalResult.textContent = `Đã trả lời ${answeredTotal} / 30 câu · Đúng: —`;
+        totalResult.textContent = `Đã trả lời ${answeredTotal}/30 câu · Số câu đúng: —`;
       } else {
-        totalResult.textContent = `Hoàn thành 30 / 30 câu · Đúng: ${submittedScore} câu`;
+        totalResult.textContent = `Số câu đúng: ${submittedScore}/30`;
       }
     }
 
@@ -1311,29 +1311,6 @@
       event.preventDefault();
       zone.classList.remove("is-drop-target");
       moveToken(chip, zone);
-    });
-
-    drillForm.addEventListener("reset", () => {
-      window.setTimeout(() => {
-        drillForm.classList.remove("drill-checked");
-        drillList.querySelectorAll(".drill-card").forEach((card, drillIndex) => {
-          card.classList.remove("is-correct", "is-incorrect");
-          card.querySelector(".drill-feedback").textContent = "";
-          const wordBank = card.querySelector(".word-bank");
-          const answerZone = card.querySelector(".answer-zone");
-          wordBank.querySelectorAll(".word-chip").forEach((chip) => {
-            chip.disabled = false;
-            chip.draggable = true;
-            chip.setAttribute("aria-pressed", "false");
-            chip.textContent = drills[drillIndex].sentence.split(/\s+/)[Number(chip.dataset.tokenId)];
-          });
-          shuffle([...wordBank.querySelectorAll(".word-chip")]).forEach((chip) => wordBank.append(chip));
-          answerZone.querySelectorAll(".word-chip").forEach((chip) => chip.remove());
-          updateAnswerPlaceholder(answerZone);
-        });
-        drillProgressCount.classList.remove("is-complete", "is-incomplete");
-        updateDrillProgress();
-      }, 0);
     });
 
     questionList.addEventListener("change", updateProgress);
@@ -1414,24 +1391,21 @@
       drillProgressCount.classList.toggle("is-incomplete", drillScore !== drills.length);
     });
 
-    form.addEventListener("reset", () => {
-      window.setTimeout(() => {
-        form.classList.remove("quiz-checked");
-        form.querySelectorAll(".answer-option").forEach((option) => {
-          option.classList.remove("is-correct", "is-wrong", "is-selected");
-          option.querySelector("input").disabled = false;
-        });
-        progressCount.classList.remove("is-complete", "is-incomplete");
-        updateProgress();
-      }, 0);
-    });
-
     document.querySelector("#reset-all").addEventListener("click", () => {
-      form.reset();
-      drillForm.reset();
       submittedScore = null;
+      questions = shuffle(questions);
+      drills = shuffle(drills);
+      form.classList.remove("quiz-checked");
+      drillForm.classList.remove("drill-checked");
+      questionList.replaceChildren();
+      drillList.replaceChildren();
       totalResult.className = "total-result";
-      window.setTimeout(updateTotalProgress, 0);
+      progressCount.classList.remove("is-complete", "is-incomplete");
+      drillProgressCount.classList.remove("is-complete", "is-incomplete");
+      renderQuestions();
+      renderDrills();
+      updateProgress();
+      updateDrillProgress();
     });
 
     renderQuestions();
